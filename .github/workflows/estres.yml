@@ -1,0 +1,23 @@
+name: Prueba de estres
+
+on:
+  workflow_dispatch:
+
+jobs:
+  k6:
+    runs-on: ubuntu-latest
+    services:
+      quickpizza:
+        image: ghcr.io/grafana/quickpizza-local:latest
+        ports:
+          - 3333:3333
+    steps:
+      - name: Descargar archivos del repositorio
+        uses: actions/checkout@v4
+
+      - name: Esperar a que la app encienda
+        timeout-minutes: 2
+        run: until curl -sf http://localhost:3333/ > /dev/null; do sleep 2; done
+
+      - name: Correr prueba con k6
+        run: docker run --rm -i --network host grafana/k6 run - < estres.js
